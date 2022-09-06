@@ -1,0 +1,228 @@
+<template>
+  <div id="app">
+    <h2>Vue.js WebSocket Tutorial</h2> 
+    <button v-on:click="conect()">conect</button>
+    <button v-on:click="disconect()">disconect</button>
+    <div id="container">
+      <div id="top">
+        <div id="map">
+          <p>lasjdfsjdn</p>
+        </div>
+        <div id="chat">
+          <div id="mesages">
+            <div v-for="m in m_data" :key="m">
+            <p v-if="m.message.level=='info'"><span class="user">{{m.message.name}}:</span> {{m.message.content}} <span class="date">{{m.message.date}}</span></p>
+            <p class="warn" v-else><span class="user">{{m.message.name}}:</span> {{m.message.content}} <span class="date">{{m.message.date}}</span></p>
+            </div>
+          </div>
+          <input class="mensaje" type="text" v-model="msg">
+          <button @click="sendMessage">Send</button>
+        </div>
+      </div>
+      <div id="bot">
+        <div v-if="f_data">
+          <h1>Fligths</h1>
+          <table>
+            <tr>
+              <th colspan="2">Origen</th>
+              <th colspan="2">Destino</th>
+              <th rowspan="2">ID de vuelo</th>
+              <th rowspan="2">Horario</th>
+            </tr>
+            <tr>
+              <th>Aeropuerto</th>
+              <th>Ciudad</th>
+              <th>Aeropuerto</th>
+              <th>Ciudad</th>
+            </tr>
+            <tr v-for="vuelo in f_data.flights" :key="vuelo">
+              <td>{{vuelo.departure.name}} ({{vuelo.departure.id}})</td>
+              <td>{{vuelo.departure.city.name}} ({{vuelo.departure.city.country.id}})</td>
+              <td>{{vuelo.destination.name}} ({{vuelo.destination.id}})</td>
+              <td>{{vuelo.destination.city.name}} ({{vuelo.destination.city.country.id}})</td>
+              <td>{{vuelo.id}}</td>
+              <td>{{vuelo.departure_date}}</td>
+            </tr>
+          </table>
+        </div>
+        <div>Plane</div>
+        <span v-if="p_data.length > 0"> {{p_data}} </span>
+        <div>Takeoff</div>
+        <span v-if="t_data.length > 0"> {{t_data}} </span>
+        <div>Landing</div>
+        <span v-if="l_data.length > 0"> {{l_data}} </span>
+        <div>Crashed</div>
+        <span v-if="c_data.length > 0"> {{c_data}} </span>
+        <div>Message</div>
+        <span v-if="m_data.length > 0"> {{m_data}} </span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+
+export default {
+  name: 'App',
+  data: function() {
+    return {
+      msg: null,
+      connection: null,
+      cEvent: JSON.stringify({
+      "type": "join",
+      "id": "1b62b209-b288-4459-94ba-3297c013d269",
+      "username": "vichonario",
+      }),
+      f_data: null,
+      p_data: [],
+      t_data: [],
+      l_data: [],
+      c_data: [],
+      m_data: [],
+    }
+  },
+  methods:{
+    sendMessage: function(event) {
+      console.log("the mesage is", this.msg, event)
+      if (this.msg != null) {
+        var msgev = JSON.stringify({
+          "type": "chat",
+          "content": this.msg
+          });
+        this.connection.send(msgev)
+        this.msg = null
+      }
+      //this.connection.send();
+    },
+    conect: function(){
+        this.connection.send(this.cEvent);
+    },
+    disconect: function(){
+      this.connection.close()
+    }
+  },
+  created: function() {
+    this.connection = new WebSocket("wss://tarea-1.2022-2.tallerdeintegracion.cl/connect")
+
+    this.connection.onmessage = (event) => {
+      var parsed = JSON.parse(event.data)
+      //console.log(parsed.type)
+      if (parsed.type == "flights"){
+        //console.log(parsed.flights)
+        this.f_data = (parsed)
+      } else if (parsed.type == "plane") {
+        this.p_data = parsed.plane
+      } else if (parsed.type == "message") {
+        this.m_data.push(parsed)
+      } else if (parsed.type == "take-off") {
+        this.t_data.push(parsed.flight_id)
+      } else if (parsed.type == "landing") {
+        this.l_data.push(parsed.flight_id)
+      } else if (parsed.type == "crashed") {
+        this.c_data.push(parsed.flight_id)
+      } 
+    }
+
+    this.connection.onopen = function() {
+      console.log("Successfully connected to the echo websocket server...")
+    }
+
+    this.connection.onclose = function() {
+      console.log("Successfully disconnected to the echo websocket server...")
+      location.reload()
+    }
+
+  }
+}
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
+
+p {
+  padding-left: 6px;
+  text-align: left;
+}
+
+.user {
+  text-decoration: underline;
+  font-weight: bold;
+}
+.date {
+  font-weight:lighter;
+  font-size:x-small;
+  font-style: italic;
+}
+
+.warn {
+  color: #ad1e23;
+}
+
+table {
+  align-self: center;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: center;
+  padding:6px 20px;
+}
+tr th {
+  border: 1px solid #dddddd;
+  text-align: center;
+  padding:6px 20px;
+  background-color: #ad1e23;
+  color:#fff;
+}
+
+tr:hover {
+  background-color: #dddddd;
+  cursor: pointer;
+}
+
+.content td, .content th {
+    border-top: 1px solid transparent;
+    padding: 2px 10px 2px 15px;
+}
+
+#top { 
+  height: 60%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+#bot { 
+  height: 40%;
+}
+#chat { 
+  height: 100%;
+  margin-right: 100px;
+}
+#map { 
+  height: 100%;
+  margin-left: 100px;
+}
+#mesages{
+  height: 400px;
+  width: 500px;
+  overflow-y: auto;
+  border: 1px solid black;
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+.mensaje {
+  width: 450px;
+  overflow-x: scroll;
+}
+</style>
