@@ -26,7 +26,7 @@ export default {
       zoom: 3,
       center: [51.505, -0.159],
       markerLatLng: [51.504, -0.159],
-      color: 'green'
+      color: 'red'
     };
   }
 }
