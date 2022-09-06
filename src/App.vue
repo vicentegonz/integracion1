@@ -1,14 +1,12 @@
 <template>
   <div id="app">
-    <h2>Vue.js WebSocket Tutorial</h2> 
+    <h2>Tarea 1 Taller de integracion FLIGTHS.IO</h2> 
     <button v-on:click="conect()">conect</button>
     <button v-on:click="disconect()">disconect</button>
     <div id="container">
       <div id="top">
-        <div id="map">
-          <p>lasjdfsjdn</p>
-        </div>
         <div id="chat">
+          <h1>ChatRoom</h1>
           <div id="mesages">
             <div v-for="m in m_data" :key="m">
             <p v-if="m.message.level=='info'"><span class="user">{{m.message.name}}:</span> {{m.message.content}} <span class="date">{{m.message.date}}</span></p>
@@ -17,6 +15,10 @@
           </div>
           <input class="mensaje" type="text" v-model="msg">
           <button @click="sendMessage">Send</button>
+        </div>
+        <div id="map">
+          <h1 v-if="f_data">Estado de Vuelos</h1>
+          <HelloWorld v-if="f_data" :fligts="f_data"></HelloWorld>
         </div>
       </div>
       <div id="bot">
@@ -53,17 +55,20 @@
         <span v-if="l_data.length > 0"> {{l_data}} </span>
         <div>Crashed</div>
         <span v-if="c_data.length > 0"> {{c_data}} </span>
-        <div>Message</div>
-        <span v-if="m_data.length > 0"> {{m_data}} </span>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import HelloWorld from './components/HelloWorld.vue';
+
 
 export default {
   name: 'App',
+  components: {
+    HelloWorld
+  },
   data: function() {
     return {
       msg: null,
@@ -108,7 +113,7 @@ export default {
       var parsed = JSON.parse(event.data)
       //console.log(parsed.type)
       if (parsed.type == "flights"){
-        //console.log(parsed.flights)
+        console.log(parsed.flights)
         this.f_data = (parsed)
       } else if (parsed.type == "plane") {
         this.p_data = parsed.plane
@@ -207,11 +212,14 @@ tr:hover {
 }
 #chat { 
   height: 100%;
-  margin-right: 100px;
+  margin-right: 20px;
+  margin-left: 100px;
 }
 #map { 
-  height: 100%;
-  margin-left: 100px;
+  height: 450px;
+  width: 1000px;
+  margin-left: 10px;
+  margin-right: 50px;
 }
 #mesages{
   height: 400px;
@@ -222,7 +230,7 @@ tr:hover {
   align-items: flex-start;
 }
 .mensaje {
-  width: 450px;
+  width: 425px;
   overflow-x: scroll;
 }
 </style>
