@@ -18,7 +18,7 @@
         </div>
         <div id="map">
           <h1 v-if="f_data">Estado de Vuelos</h1>
-          <HelloWorld v-if="f_data" :fligts="f_data"></HelloWorld>
+          <HelloWorld v-if="f_data" :fligts="f_data" :crashed="c_data" :landed="l_data" :planes="p_data" :takeoff="t_data"></HelloWorld>
         </div>
       </div>
       <div id="bot">
@@ -47,14 +47,6 @@
             </tr>
           </table>
         </div>
-        <div>Plane</div>
-        <span v-if="p_data.length > 0"> {{p_data}} </span>
-        <div>Takeoff</div>
-        <span v-if="t_data.length > 0"> {{t_data}} </span>
-        <div>Landing</div>
-        <span v-if="l_data.length > 0"> {{l_data}} </span>
-        <div>Crashed</div>
-        <span v-if="c_data.length > 0"> {{c_data}} </span>
       </div>
     </div>
   </div>
@@ -79,7 +71,7 @@ export default {
       "username": "vichonario",
       }),
       f_data: null,
-      p_data: [],
+      p_data: {},
       t_data: [],
       l_data: [],
       c_data: [],
@@ -103,7 +95,7 @@ export default {
         this.connection.send(this.cEvent);
     },
     disconect: function(){
-      this.connection.close()
+      this.connection.close();
     }
   },
   created: function() {
@@ -113,18 +105,29 @@ export default {
       var parsed = JSON.parse(event.data)
       //console.log(parsed.type)
       if (parsed.type == "flights"){
-        console.log(parsed.flights)
+        //console.log(parsed.flights)
         this.f_data = (parsed)
       } else if (parsed.type == "plane") {
-        this.p_data = parsed.plane
+        if (Object.keys(this.p_data).includes(parsed.plane.flight_id)){
+          this.p_data[parsed.plane.flight_id].plane = parsed.plane
+          this.p_data[parsed.plane.flight_id].latlong.push([parsed.plane.position.lat, parsed.plane.position.long])
+        } else {
+          this.p_data[parsed.plane.flight_id] = { "plane": parsed.plane,
+          "latlong": [[parsed.plane.position.lat, parsed.plane.position.long]]}
+        }
       } else if (parsed.type == "message") {
         this.m_data.push(parsed)
       } else if (parsed.type == "take-off") {
-        this.t_data.push(parsed.flight_id)
+        console.log("take off")
+        this.t_data.push(parsed)
+        if (Object.keys(this.p_data).includes(parsed.flight_id))
+        this.p_data[parsed.flight_id].latlong = []
       } else if (parsed.type == "landing") {
-        this.l_data.push(parsed.flight_id)
+        console.log("landing")
+        this.l_data.push(parsed)
       } else if (parsed.type == "crashed") {
-        this.c_data.push(parsed.flight_id)
+        console.log("crashed")
+        this.c_data.push(parsed)
       } 
     }
 
@@ -174,6 +177,7 @@ table {
   align-self: center;
   border-collapse: collapse;
   width: 100%;
+  margin-bottom: 50px;
 }
 
 td, th {
