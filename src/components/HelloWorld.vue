@@ -142,8 +142,5 @@ export default {
 </script>
 
 <style>
-  .dep {
-    background-color: crimson;
-  }
 </style>
 
