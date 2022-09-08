@@ -1,5 +1,5 @@
 <template>
-  <l-map style="height: 450px" :zoom="zoom" :center="center" :maxZoom="9" :minZoom="1">
+  <l-map style="height: 450px" :zoom="zoom" :center="center" :maxZoom="11" :minZoom="1">
     <l-tile-layer :url="url" :attribution="attribution"></l-tile-layer>
     <div v-for="f in Object.keys(fligts.flights)" :key="f">
       <l-marker @click="showPopup(fligts.flights[f].departure.name)" :lat-lng=[fligts.flights[f].departure.location.lat,fligts.flights[f].departure.location.long] >
@@ -109,7 +109,6 @@ export default {
       Direccion: ${lat}, ${long}`)
     },
     showPopup(val){
-      console.log(val)
       var dep = []
       var dest = []
       var country = null

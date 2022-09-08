@@ -3,6 +3,32 @@
     <h2>Tarea 1 Taller de integracion FLIGTHS.IO</h2> 
     <button v-on:click="conect()">conect</button>
     <button v-on:click="disconect()">disconect</button>
+    <div class="display">
+      <div class="leyend">
+        <img src="plane.png" alt="avion en vuelo" width="30" height="30">
+        <p>Avion en vuelo</p>
+      </div>
+      <div>
+        <img src="dep.png" alt="avion en vuelo" width="30" height="30">
+        <p>Aeropuerto de despege</p>
+      </div>
+      <div>
+        <img src="landed.png" alt="avion en vuelo" width="30" height="30">
+        <p>Avion aterrizado</p>
+      </div>
+      <div>
+        <img src="takeoff.png" alt="avion en vuelo" width="30" height="30">
+        <p>Avion despegando</p>
+      </div>
+      <div>
+        <img src="crash.png" alt="avion en vuelo" width="30" height="30">
+        <p>Avion accidentado</p>
+      </div>
+      <div>
+        <img src="location.png" alt="avion en vuelo" width="30" height="30">
+        <p>Aeropuerto de destino</p>
+      </div>
+    </div>
     <div id="container">
       <div id="top">
         <div id="chat">
@@ -106,7 +132,18 @@ export default {
       //console.log(parsed.type)
       if (parsed.type == "flights"){
         //console.log(parsed.flights)
-        this.f_data = (parsed)
+        const f_list = Object.entries(parsed.flights);
+        f_list.sort((vuelo1,vuelo2) => (vuelo1[1].destination.name > vuelo2[1].destination.name) ? 1 : (vuelo1[1].destination.name < vuelo2[1].destination.name ? -1 : 0));
+        f_list.sort((vuelo1,vuelo2) => (vuelo1[1].departure.name > vuelo2[1].departure.name) ? 1 : (vuelo1[1].departure.name < vuelo2[1].departure.name ? -1 : 0));
+        var final = {
+          "type": "flights",
+          "flights": {}
+          }
+        f_list.forEach(e =>{
+          final.flights[e[0]] = e[1]
+        });
+        //console.log(final)
+        this.f_data = (final)
       } else if (parsed.type == "plane") {
         if (Object.keys(this.p_data).includes(parsed.plane.flight_id)){
           this.p_data[parsed.plane.flight_id].plane = parsed.plane
@@ -118,15 +155,12 @@ export default {
       } else if (parsed.type == "message") {
         this.m_data.push(parsed)
       } else if (parsed.type == "take-off") {
-        console.log("take off")
-        this.t_data.push(parsed)
-        if (Object.keys(this.p_data).includes(parsed.flight_id))
-        this.p_data[parsed.flight_id].latlong = []
+        if (Object.keys(this.p_data).includes(parsed.flight_id)){
+          this.p_data[parsed.flight_id].latlong = []
+        }
       } else if (parsed.type == "landing") {
-        console.log("landing")
         this.l_data.push(parsed)
       } else if (parsed.type == "crashed") {
-        console.log("crashed")
         this.c_data.push(parsed)
       } 
     }
@@ -236,5 +270,14 @@ tr:hover {
 .mensaje {
   width: 425px;
   overflow-x: scroll;
+}
+
+.display{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-left: 20px;
+  margin-right: 20px;
+  margin-top: 30px;
 }
 </style>
